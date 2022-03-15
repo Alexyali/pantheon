@@ -20,7 +20,7 @@ def install_deps(cc_src):
 
 def setup(args):
     # update submodules
-    utils.update_submodules()
+    # utils.update_submodules()
 
     # setup specified schemes
     cc_schemes = None
