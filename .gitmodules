@@ -54,3 +54,7 @@
 	path = third_party/fillp-sheep
 	url = https://github.com/fillthepipe/fillp-sheep.git
 	ignore = dirty
+[submodule "third_party/udt_cc"]
+	path = third_party/udt_cc
+	url = https://github.com/Alexyali/udt_cc.git
+	ignore = dirty
