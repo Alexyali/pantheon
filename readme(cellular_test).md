@@ -72,7 +72,7 @@ src/analysis/analyze.py --data-dir DIR
 
 ## 简化版脚本
 
-`exper.sh`是在LTE仿真网络下测试pantheon的脚本，直接执行可以运行程序并分析生成结果。
+`exper.sh`是在LTE仿真网络下测试pantheon的脚本，直接执行可以运行程序并分析生成结果。该脚本仅选择了cubic、bbr、vegas和cldcc算法，因此在**编译**部分涉及`--schemes`的可以直接指定`--schemes "cubic vegas bbr cldcc"`。
 
 注意：运行该脚本前需要先完成**编译**部分的所有内容。
 
