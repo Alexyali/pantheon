@@ -165,6 +165,7 @@ class TunnelGraph(object):
         self.avg_ingress = {}
         self.avg_egress = {}
         self.percentile_delay = {}
+        self.avg_delay = {}
         self.loss_rate = {}
 
         total_delays = []
@@ -221,6 +222,7 @@ class TunnelGraph(object):
             if flow_id in self.delays:
                 self.percentile_delay[flow_id] = np.percentile(
                     self.delays[flow_id], 95, interpolation='nearest')
+                self.avg_delay[flow_id] = np.average(self.delays[flow_id])
                 total_delays += self.delays[flow_id]
 
             # calculate loss rate for each flow
@@ -248,9 +250,11 @@ class TunnelGraph(object):
                 1000.0 * self.total_duration)
 
         self.total_percentile_delay = None
+        self.total_avg_delay = None
         if total_delays:
             self.total_percentile_delay = np.percentile(
                 total_delays, 95, interpolation='nearest')
+            self.total_avg_delay = np.average(total_delays)
 
     def flip(self, items, ncol):
         return list(itertools.chain(*[items[i::ncol] for i in range(ncol)]))
@@ -323,8 +327,9 @@ class TunnelGraph(object):
 
                 ax.scatter(self.delays_t[flow_id], self.delays[flow_id], s=1,
                            color=color, marker='.',
-                           label='Flow %s (95th percentile %.2f ms)'
-                           % (flow_id, self.percentile_delay.get(flow_id, 0)))
+                           label='Flow %s (95th percentile %.2f ms, avg %.2f ms)'
+                           % (flow_id, self.percentile_delay.get(flow_id, 0),
+                            self.avg_delay.get(flow_id, 0)))
 
                 color_i += 1
                 if color_i == len(colors):
@@ -371,6 +376,10 @@ class TunnelGraph(object):
             ret += ('95th percentile per-packet one-way delay: %.3f ms\n' %
                     self.total_percentile_delay)
 
+        if self.total_avg_delay is not None:
+            ret += ('Average per-packet one-way delay: %.3f ms\n' %
+                    self.total_avg_delay)
+
         if self.total_loss_rate is not None:
             ret += 'Loss rate: %.2f%%\n' % (self.total_loss_rate * 100.0)
 
@@ -386,6 +395,11 @@ class TunnelGraph(object):
                     self.percentile_delay[flow_id] is not None):
                 ret += ('95th percentile per-packet one-way delay: %.3f ms\n' %
                         self.percentile_delay[flow_id])
+
+            if (flow_id in self.avg_delay and
+                    self.avg_delay[flow_id] is not None):
+                ret += ('Average per-packet one-way delay: %.3f ms\n' %
+                        self.avg_delay[flow_id])
 
             if (flow_id in self.loss_rate and
                     self.loss_rate[flow_id] is not None):
@@ -407,6 +421,7 @@ class TunnelGraph(object):
         tunnel_results = {}
         tunnel_results['throughput'] = self.total_avg_egress
         tunnel_results['delay'] = self.total_percentile_delay
+        tunnel_results['avg_delay'] = self.total_avg_delay
         tunnel_results['loss'] = self.total_loss_rate
         tunnel_results['duration'] = self.total_duration
         tunnel_results['stats'] = self.statistics_string()
@@ -415,6 +430,7 @@ class TunnelGraph(object):
         flow_data['all'] = {}
         flow_data['all']['tput'] = self.total_avg_egress
         flow_data['all']['delay'] = self.total_percentile_delay
+        flow_data['all']['avg_delay'] = self.total_avg_delay
         flow_data['all']['loss'] = self.total_loss_rate
 
         for flow_id in self.flows:
@@ -422,6 +438,7 @@ class TunnelGraph(object):
                 flow_data[flow_id] = {}
                 flow_data[flow_id]['tput'] = self.avg_egress[flow_id]
                 flow_data[flow_id]['delay'] = self.percentile_delay[flow_id]
+                flow_data[flow_id]['avg_delay'] = self.avg_delay[flow_id]
                 flow_data[flow_id]['loss'] = self.loss_rate[flow_id]
 
         tunnel_results['flow_data'] = flow_data

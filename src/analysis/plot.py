@@ -249,18 +249,18 @@ class Plot(object):
             cc_name = schemes_config[cc]['name']
             color = schemes_config[cc]['color']
             marker = schemes_config[cc]['marker']
-            y_data, x_data = zip(*value)
+            y_data, x_data, z_data = zip(*value)
 
             # update min and max raw delay
-            min_raw_delay = min(min(x_data), min_raw_delay)
-            max_raw_delay = max(max(x_data), max_raw_delay)
+            min_raw_delay = min(min(z_data), min_raw_delay)
+            max_raw_delay = max(max(z_data), max_raw_delay)
 
             # plot raw values
-            ax_raw.scatter(x_data, y_data, color=color, marker=marker,
+            ax_raw.scatter(z_data, y_data, color=color, marker=marker,
                            label=cc_name, clip_on=False)
 
             # plot the average of raw values
-            x_mean = np.mean(x_data)
+            x_mean = np.mean(z_data)
             y_mean = np.mean(y_data)
 
             # update min and max mean delay
@@ -283,9 +283,10 @@ class Plot(object):
             if yticks[0] < 0:
                 ax.set_ylim(bottom=0)
 
-            xlabel = '95th percentile one-way delay (ms)'
+            xlabel = 'Average one-way delay (ms)'
             ax.set_xlabel(xlabel, fontsize=12)
             ax.set_ylabel('Average throughput (Mbit/s)', fontsize=12)
+            # ax.axvline(x=50,color='red',linewidth=1, linestyle='--')
             ax.grid()
 
         # save pantheon_summary.svg and .pdf
@@ -329,9 +330,10 @@ class Plot(object):
 
                 tput = perf_data[cc][run_id]['throughput']
                 delay = perf_data[cc][run_id]['delay']
+                avg_delay = perf_data[cc][run_id]['avg_delay']
                 if tput is None or delay is None:
                     continue
-                data_for_plot[cc].append((tput, delay))
+                data_for_plot[cc].append((tput, delay, avg_delay))
 
                 flow_data = perf_data[cc][run_id]['flow_data']
                 if flow_data is not None:

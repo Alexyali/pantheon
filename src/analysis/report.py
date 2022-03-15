@@ -127,7 +127,8 @@ class Report(object):
             '\\centering\n'
             '\\begin{tabularx}{%(width)s\linewidth}{%(align)s}\n'
             '& & \\multicolumn{%(flows)d}{c|}{mean avg tput (Mbit/s)}'
-            ' & \\multicolumn{%(flows)d}{c|}{mean 95th-\\%%ile delay (ms)}'
+            # ' & \\multicolumn{%(flows)d}{c|}{mean 95th-\\%%ile delay (ms)}'
+            ' & \\multicolumn{%(flows)d}{c|}{mean avg delay (ms)}'
             ' & \\multicolumn{%(flows)d}{c}{mean loss rate (\\%%)} \\\\\n'
             'scheme & \\# runs & %(flow_cols)s & %(flow_cols)s & %(flow_cols)s'
             ' \\\\\n'
@@ -139,7 +140,7 @@ class Report(object):
 
         for cc in self.cc_schemes:
             flow_data = {}
-            for data_t in ['tput', 'delay', 'loss']:
+            for data_t in ['tput', 'delay', 'avg_delay', 'loss']:
                 flow_data[data_t] = []
                 for flow_id in xrange(1, self.flows + 1):
                     if data[cc][flow_id][data_t]:
@@ -154,7 +155,8 @@ class Report(object):
             ) % {'name': data[cc]['name'],
                  'valid_runs': data[cc]['valid_runs'],
                  'flow_tputs': ' & '.join(flow_data['tput']),
-                 'flow_delays': ' & '.join(flow_data['delay']),
+            #     'flow_delays': ' & '.join(flow_data['delay']),
+                 'flow_delays': ' & '.join(flow_data['avg_delay']),
                  'flow_losses': ' & '.join(flow_data['loss'])}
 
         table += (
@@ -170,6 +172,7 @@ class Report(object):
         re_tput = lambda x: re.match(r'Average throughput: (.*?) Mbit/s', x)
         re_delay = lambda x: re.match(
             r'95th percentile per-packet one-way delay: (.*?) ms', x)
+        re_avg_delay = lambda x: re.match(r'Average per-packet one-way delay: (.*?) ms', x)
         re_loss = lambda x: re.match(r'Loss rate: (.*?)%', x)
 
         for cc in self.cc_schemes:
@@ -185,6 +188,7 @@ class Report(object):
 
                 data[cc][flow_id]['tput'] = []
                 data[cc][flow_id]['delay'] = []
+                data[cc][flow_id]['avg_delay'] = []
                 data[cc][flow_id]['loss'] = []
 
             for run_id in xrange(1, 1 + self.run_times):
@@ -218,6 +222,11 @@ class Report(object):
                         if ret:
                             ret = float(ret.group(1))
                             data[cc][flow_id]['delay'].append(ret)
+
+                        ret =re_avg_delay(stats_log.readline())
+                        if ret:
+                            ret = float(ret.group(1))
+                            data[cc][flow_id]['avg_delay'].append(ret)
 
                         ret = re_loss(stats_log.readline())
                         if ret:
